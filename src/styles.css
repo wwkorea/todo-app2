@@ -1,0 +1,473 @@
+:root {
+  --bg: #ffffff;
+  --text: #37352f;
+  --text-muted: #787774;
+  --text-faint: #a8a29e;
+  --text-ghost: #c9c9c5;
+  --border: #f1f1ef;
+  --hover-bg: #f7f7f5;
+  --chip-bg: #f1f1ef;
+  --chip-text: #57544e;
+  --drag-bg: #edf3ff;
+  --token0-bg: #fdeceb;
+  --token0-text: #e03e3e;
+  --token1-bg: #e7f0fd;
+  --token1-text: #2f6fed;
+  --token2-bg: #e6f4ea;
+  --token2-text: #0f7b3e;
+  --token3-bg: #fbeedd;
+  --token3-text: #d9730d;
+  --token4-bg: #efefee;
+  --token4-text: #8d8a85;
+  --token5-bg: #f2edfb;
+  --token5-text: #7a3ddb;
+}
+
+:root[data-theme='dark'] {
+  --bg: #191919;
+  --text: #e6e6e4;
+  --text-muted: #9b9b98;
+  --text-faint: #7d7d7a;
+  --text-ghost: #555552;
+  --border: #2c2c2b;
+  --hover-bg: #232322;
+  --chip-bg: #2c2c2b;
+  --chip-text: #c9c9c5;
+  --drag-bg: #1e2a41;
+  --token0-bg: #3d2323;
+  --token0-text: #ff7369;
+  --token1-bg: #1f2b45;
+  --token1-text: #6ea3ff;
+  --token2-bg: #1e3327;
+  --token2-text: #4dab6d;
+  --token3-bg: #3c2c18;
+  --token3-text: #f2994a;
+  --token4-bg: #2c2c2b;
+  --token4-text: #8d8a85;
+  --token5-bg: #2b2140;
+  --token5-text: #a985f2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* 창 크기에 맞춰 가로폭이 늘어나는 레이아웃 */
+.app {
+  width: 100%;
+  margin: 0;
+  padding: 16px 40px 48px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.center-screen {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- 헤더 ---------- */
+.app-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  padding: 8px 0;
+  z-index: 10;
+}
+
+.search-input {
+  flex: 1;
+  background: var(--hover-bg);
+  border-color: transparent;
+}
+
+.app-tabs .ant-tabs-nav {
+  margin-bottom: 8px;
+}
+
+.app-tabs .ant-tabs-tab {
+  user-select: none;
+}
+
+/* 행을 탭 위로 끌고 왔을 때의 드롭 대상 표시 */
+.tab-drop-target {
+  outline: 2px dashed var(--token1-text);
+  outline-offset: -2px;
+  border-radius: 6px;
+  background: var(--drag-bg);
+}
+
+/* ---------- 리스트 ---------- */
+.new-button {
+  color: var(--text-muted);
+  margin: 4px 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.row:hover {
+  background: var(--hover-bg);
+}
+
+.row-dragging {
+  opacity: 0.6;
+  background: var(--drag-bg);
+  z-index: 5;
+  position: relative;
+}
+
+.row-handle {
+  color: var(--text-ghost);
+  cursor: grab;
+  padding: 0 2px;
+  visibility: hidden;
+}
+
+.row:hover .row-handle {
+  visibility: visible;
+}
+
+/* ---------- 고정 폭 컬럼 (헤더/행 공통) ---------- */
+.col-status {
+  width: 104px;
+  flex-shrink: 0;
+}
+
+.col-priority {
+  width: 88px;
+  flex-shrink: 0;
+}
+
+.col-date {
+  width: 44px;
+  flex-shrink: 0;
+  display: inline-block;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.col-updated {
+  width: 84px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.col-del {
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px 6px;
+  font-size: 12px;
+  color: var(--text-faint);
+  border-bottom: 1px solid var(--border);
+}
+
+.list-header .col-status,
+.list-header .col-priority {
+  padding-left: 8px;
+}
+
+.header-spacer {
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.row-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.list-header .row-title {
+  cursor: default;
+}
+
+.row-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row .row-title:hover .row-title-text {
+  text-decoration: underline;
+  text-decoration-color: var(--text-ghost);
+}
+
+.row-done .row-title-text {
+  color: var(--text-faint);
+  text-decoration: line-through;
+}
+
+.row-tags {
+  display: inline-flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.row-tag {
+  font-size: 11px;
+  line-height: 18px;
+  margin-inline-end: 0;
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  border: none;
+}
+
+.row-delete {
+  color: var(--text-ghost);
+  visibility: hidden;
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.row:hover .row-delete {
+  visibility: visible;
+}
+
+.cell-empty {
+  color: var(--text-ghost);
+}
+
+.due-soon {
+  color: #d9730d;
+  font-weight: 600;
+}
+
+.due-overdue {
+  color: #e03e3e;
+  font-weight: 600;
+}
+
+/* ---------- 검색 결과 ---------- */
+.search-results {
+  padding-top: 8px;
+}
+
+.search-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+
+.search-row:hover {
+  background: var(--hover-bg);
+}
+
+.search-tab {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--chip-bg);
+  border-radius: 4px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.search-title {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.search-snippet {
+  font-size: 12px;
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- 상세 ---------- */
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 8px;
+}
+
+.detail-header > :first-child {
+  margin-right: auto;
+}
+
+.save-state {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.save-state-dirty {
+  color: #d9730d;
+}
+
+.detail-title {
+  font-size: 28px;
+  font-weight: 700;
+  padding: 4px 0;
+}
+
+.detail-fields {
+  padding: 4px 0 8px;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+}
+
+.field-label {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-right: 4px;
+}
+
+.field-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tag-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tag-gear {
+  color: var(--text-ghost);
+}
+
+/* ---------- 에디터 툴바 ---------- */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  position: sticky;
+  top: 48px;
+  background: var(--bg);
+  z-index: 5;
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 6px;
+}
+
+/* ---------- Milkdown ---------- */
+.md-editor {
+  min-height: 400px;
+  padding-top: 4px;
+}
+
+.md-editor .milkdown {
+  --crepe-color-background: var(--bg);
+  --crepe-color-on-background: var(--text);
+}
+
+:root[data-theme='dark'] .md-editor .milkdown {
+  --crepe-color-surface: #121212;
+  --crepe-color-surface-low: #1c1c1c;
+  --crepe-color-on-surface: #d1d1d1;
+  --crepe-color-on-surface-variant: #a9a9a9;
+  --crepe-color-outline: #757575;
+  --crepe-color-primary: #b5b5b5;
+  --crepe-color-secondary: #4d4d4d;
+  --crepe-color-on-secondary: #d6d6d6;
+  --crepe-color-inverse: #e5e5e5;
+  --crepe-color-on-inverse: #2a2a2a;
+  --crepe-color-inline-code: #ff6666;
+  --crepe-color-error: #ff6666;
+  --crepe-color-hover: #232323;
+  --crepe-color-selected: #2f2f2f;
+  --crepe-color-inline-area: #2b2b2b;
+  --crepe-shadow-1:
+    0px 1px 2px 0px rgba(255, 255, 255, 0.3),
+    0px 1px 3px 1px rgba(255, 255, 255, 0.15);
+  --crepe-shadow-2:
+    0px 1px 2px 0px rgba(255, 255, 255, 0.3),
+    0px 2px 6px 2px rgba(255, 255, 255, 0.15);
+}
+
+.md-editor .milkdown .ProseMirror {
+  padding: 8px 0 120px;
+}
+
+/* ---------- 상태 토큰 칩 ---------- */
+.status-token {
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--chip-bg);
+  color: var(--chip-text);
+}
+
+.status-token-0 {
+  background: var(--token0-bg);
+  color: var(--token0-text);
+}
+
+.status-token-1 {
+  background: var(--token1-bg);
+  color: var(--token1-text);
+}
+
+.status-token-2 {
+  background: var(--token2-bg);
+  color: var(--token2-text);
+}
+
+.status-token-3 {
+  background: var(--token3-bg);
+  color: var(--token3-text);
+}
+
+.status-token-4 {
+  background: var(--token4-bg);
+  color: var(--token4-text);
+}
+
+.status-token-5 {
+  background: var(--token5-bg);
+  color: var(--token5-text);
+}
+
+.setup-hint {
+  color: var(--text-muted);
+}
