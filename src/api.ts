@@ -1,4 +1,5 @@
 import { open } from '@tauri-apps/plugin-dialog'
+import { openPath } from '@tauri-apps/plugin-opener'
 import {
   copyFile,
   exists,
@@ -215,6 +216,24 @@ export const api = {
   async pickDir(): Promise<string | null> {
     const dir = await open({ title: '데이터 저장 폴더 선택', directory: true })
     return typeof dir === 'string' ? dir : null
+  },
+
+  async pickFile(): Promise<string | null> {
+    const f = await open({ title: '첨부할 파일 선택', multiple: false, directory: false })
+    return typeof f === 'string' ? f : null
+  },
+
+  /** 첨부파일을 OS 기본 연결 프로그램으로 실행 */
+  async openFile(path: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      if (!(await exists(path))) {
+        return { ok: false, error: '파일을 찾을 수 없습니다 (이동/삭제되었을 수 있음)' }
+      }
+      await openPath(path)
+      return { ok: true }
+    } catch (e) {
+      return { ok: false, error: String(e) }
+    }
   },
 
   async initData(dataDir: string): Promise<AppData> {

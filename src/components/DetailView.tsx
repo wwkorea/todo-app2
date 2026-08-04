@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, DatePicker, Input, Modal, Select, Space, Tag, Tooltip } from 'antd'
+import { Button, DatePicker, Input, Modal, Select, Space, Tag, Tooltip, message } from 'antd'
 import {
   ArrowLeftOutlined,
   CalendarOutlined,
   CheckSquareOutlined,
   LineOutlined,
+  PaperClipOutlined,
   SettingOutlined,
   TagOutlined
 } from '@ant-design/icons'
+import { getCurrentWebview } from '@tauri-apps/api/webview'
 import dayjs from 'dayjs'
 import { DEFAULT_TOKENS, type Item, type TabData } from '../types'
 import {
@@ -17,6 +19,7 @@ import {
   updateTabTags,
   useAppStore
 } from '../store'
+import { api } from '../api'
 import MarkdownEditor, { MarkdownEditorHandle } from './MarkdownEditor'
 import { statusLabel } from './ListView'
 
@@ -88,6 +91,38 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
       tags: itemTags.includes(tag) ? itemTags.filter((t) => t !== tag) : [...itemTags, tag]
     })
   }
+
+  // ---- 첨부파일 (본문이 아닌 frontmatter의 attachments 배열로 관리) ----
+  const attachments = item.attachments ?? []
+
+  const addAttachments = (paths: string[]): void => {
+    const next = [...attachments]
+    for (const p of paths) if (p && !next.includes(p)) next.push(p)
+    if (next.length !== attachments.length) updateOpenItem({ attachments: next })
+  }
+  // Tauri 드롭 이벤트 콜백이 항상 최신 상태를 보도록 ref로 전달
+  const addAttachmentsRef = useRef(addAttachments)
+  addAttachmentsRef.current = addAttachments
+
+  const openAttachment = (path: string): void => {
+    void api.openFile(path).then((r) => {
+      if (!r.ok) message.error(`파일 열기 실패: ${r.error}`)
+    })
+  }
+
+  // 탐색기에서 창에 파일을 끌어놓으면 첨부 목록에 추가.
+  // Tauri는 웹 표준 drop 이벤트 대신 자체 드래그드롭 이벤트로 경로를 전달한다
+  useEffect(() => {
+    let unlisten: (() => void) | undefined
+    void getCurrentWebview()
+      .onDragDropEvent((event) => {
+        if (event.payload.type === 'drop') addAttachmentsRef.current(event.payload.paths)
+      })
+      .then((fn) => {
+        unlisten = fn
+      })
+    return () => unlisten?.()
+  }, [])
 
   // 자동저장: 마지막 수정 후 N분 무입력이면 저장
   useEffect(() => {
@@ -211,6 +246,18 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
             onClick={() => editorRef.current?.insertMarkdown('\n---\n')}
           />
         </Tooltip>
+        <Tooltip title="파일 첨부 (탐색기에서 창으로 드래그해도 됨)">
+          <Button
+            type="text"
+            size="small"
+            icon={<PaperClipOutlined />}
+            onClick={() =>
+              void api.pickFile().then((p) => {
+                if (p) addAttachments([p])
+              })
+            }
+          />
+        </Tooltip>
         <Tooltip title={`상태 토큰 삽입 — 본문에서 클릭하면 ${tokens.join(' → ')} 순환`}>
           <Button
             type="text"
@@ -241,6 +288,27 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
           </Tooltip>
         </span>
       </div>
+
+      {attachments.length > 0 && (
+        <div className="attachment-row">
+          <PaperClipOutlined className="attachment-icon" />
+          {attachments.map((p) => (
+            <Tooltip key={p} title={p}>
+              <Tag
+                className="attachment-chip"
+                closable
+                onClick={() => openAttachment(p)}
+                onClose={(e) => {
+                  e.preventDefault()
+                  updateOpenItem({ attachments: attachments.filter((x) => x !== p) })
+                }}
+              >
+                {p.split(/[\\/]/).pop() ?? p}
+              </Tag>
+            </Tooltip>
+          ))}
+        </div>
+      )}
 
       <MarkdownEditor
         key={item.id}

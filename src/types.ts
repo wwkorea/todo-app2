@@ -9,6 +9,8 @@ export interface ItemMeta {
   due_date?: string
   plan_date?: string
   tags?: string[]
+  /** 첨부파일 절대 경로 목록 — 본문이 아닌 메타데이터로 관리 */
+  attachments?: string[]
   created_at: string
   updated_at: string
   done_at?: string

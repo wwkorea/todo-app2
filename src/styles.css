@@ -238,6 +238,13 @@ body,
   flex-shrink: 0;
 }
 
+.row-attach {
+  font-size: 11px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .row-tag {
   font-size: 11px;
   line-height: 18px;
@@ -466,6 +473,33 @@ body,
 .status-token-5 {
   background: var(--token5-bg);
   color: var(--token5-text);
+}
+
+/* ---------- 첨부파일 줄 (툴바 아래 3번째 줄) ---------- */
+.attachment-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.attachment-icon {
+  color: var(--text-faint);
+  margin-right: 2px;
+}
+
+.attachment-chip {
+  cursor: pointer;
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  border: none;
+  margin-inline-end: 0;
+}
+
+.attachment-chip:hover {
+  color: #2f6fed;
 }
 
 .setup-hint {

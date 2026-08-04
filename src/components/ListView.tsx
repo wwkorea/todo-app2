@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Button, Empty, Popconfirm, Select, Tag, Tooltip } from 'antd'
-import { DeleteOutlined, HolderOutlined, PlusOutlined } from '@ant-design/icons'
+import { DeleteOutlined, HolderOutlined, PaperClipOutlined, PlusOutlined } from '@ant-design/icons'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import dayjs from 'dayjs'
@@ -83,6 +83,11 @@ function Row({ tab, item }: { tab: TabData; item: Item }): React.ReactNode {
                 {t}
               </Tag>
             ))}
+          </span>
+        )}
+        {(item.attachments?.length ?? 0) > 0 && (
+          <span className="row-attach">
+            <PaperClipOutlined /> {item.attachments!.length}
           </span>
         )}
       </span>
