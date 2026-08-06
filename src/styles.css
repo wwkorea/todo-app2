@@ -505,3 +505,30 @@ body,
 .setup-hint {
   color: var(--text-muted);
 }
+
+/* ---------- AI 자동 정리 미리보기 ---------- */
+.tidy-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tidy-pane-title {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+}
+
+.tidy-pane {
+  background: var(--hover-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  margin: 0;
+  max-height: 420px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: 13px;
+}

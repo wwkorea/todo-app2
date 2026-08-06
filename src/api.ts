@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
 import { openPath } from '@tauri-apps/plugin-opener'
 import {
@@ -280,6 +281,23 @@ export const api = {
   async saveSettings(settings: GlobalSettings): Promise<void> {
     const dataDir = requireDataDir()
     await atomicWrite(await join(dataDir, 'settings.json'), JSON.stringify(settings, null, 2))
+  },
+
+  // ---- AI (Rust 커맨드 — 키는 Windows 자격 증명 관리자에, 호출은 Rust에서) ----
+
+  aiComplete(
+    cfg: { base_url: string; model: string },
+    messages: { role: string; content: string }[]
+  ): Promise<{ ok: boolean; content?: string; error?: string }> {
+    return invoke('ai_complete', { cfg, messages })
+  },
+
+  setAiKey(key: string | null): Promise<void> {
+    return invoke('set_ai_key', { key })
+  },
+
+  hasAiKey(): Promise<boolean> {
+    return invoke('has_ai_key')
   }
 }
 

@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, DatePicker, Input, Modal, Select, Space, Tag, Tooltip, message } from 'antd'
+import { Alert, Button, DatePicker, Input, Modal, Select, Space, Tag, Tooltip, message } from 'antd'
 import {
   ArrowLeftOutlined,
   CalendarOutlined,
   CheckSquareOutlined,
   LineOutlined,
   PaperClipOutlined,
+  RobotOutlined,
   SettingOutlined,
   TagOutlined
 } from '@ant-design/icons'
+import { aiComplete, buildTidyMessages, compareTidy, getAiConfig, stripFences } from '../ai'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 import dayjs from 'dayjs'
 import { DEFAULT_TOKENS, type Item, type TabData } from '../types'
@@ -76,6 +78,15 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
   const editorRef = useRef<MarkdownEditorHandle>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
   const [tagModalOpen, setTagModalOpen] = useState(false)
+  // 에디터는 마운트 시 1회만 본문을 읽으므로, 외부(AI 정리)에서 본문을 바꾸면 리마운트가 필요하다
+  const [editorEpoch, setEditorEpoch] = useState(0)
+  const [tidy, setTidy] = useState<{
+    open: boolean
+    loading: boolean
+    original: string
+    result: string
+    error?: string
+  }>({ open: false, loading: false, original: '', result: '' })
   const isTodo = tab.setting.type === 'todo'
   const tokens = tab.setting.tokens.length ? tab.setting.tokens : [...DEFAULT_TOKENS]
 
@@ -123,6 +134,36 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
       })
     return () => unlisten?.()
   }, [])
+
+  // ---- AI 자동 정리: 미리보기로 보여주고 사용자가 적용을 눌러야만 반영 ----
+  const runTidy = async (): Promise<void> => {
+    if (!getAiConfig()) {
+      message.warning('설정(톱니바퀴)에서 AI API 주소와 모델을 먼저 입력하세요')
+      return
+    }
+    const original = editorRef.current?.getMarkdown() ?? item.body
+    if (!original.trim()) {
+      message.info('정리할 내용이 없습니다')
+      return
+    }
+    setTidy({ open: true, loading: true, original, result: '' })
+    try {
+      const result = stripFences(await aiComplete(buildTidyMessages(original)))
+      setTidy((t) => ({ ...t, loading: false, result }))
+    } catch (e) {
+      setTidy((t) => ({ ...t, loading: false, error: String(e instanceof Error ? e.message : e) }))
+    }
+  }
+
+  const applyTidy = (): void => {
+    updateOpenItem({ body: tidy.result })
+    setEditorEpoch((n) => n + 1)
+    setTidy({ open: false, loading: false, original: '', result: '' })
+    message.success('정리 결과를 적용했습니다. 저장 전 원본은 백업에 남습니다.')
+  }
+
+  const tidyChecks = tidy.result ? compareTidy(tidy.original, tidy.result, tokens) : []
+  const tidyMismatch = tidyChecks.some((c) => c.before !== c.after)
 
   // 자동저장: 마지막 수정 후 N분 무입력이면 저장
   useEffect(() => {
@@ -266,6 +307,15 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
             onClick={() => editorRef.current?.insertText(`[${tokens[0]}] `)}
           />
         </Tooltip>
+        <Tooltip title="AI 자동 정리 — 미리보기를 확인한 뒤 적용됩니다">
+          <Button
+            type="text"
+            size="small"
+            icon={<RobotOutlined />}
+            loading={tidy.open && tidy.loading}
+            onClick={() => void runTidy()}
+          />
+        </Tooltip>
         <span className="toolbar-sep" />
         <span className="tag-row">
           {visibleTags.map((tag) => (
@@ -311,7 +361,7 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
       )}
 
       <MarkdownEditor
-        key={item.id}
+        key={`${item.id}:${editorEpoch}`}
         ref={editorRef}
         defaultValue={item.body}
         tokens={tokens}
@@ -319,6 +369,58 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
       />
 
       <TagManageModal tab={tab} open={tagModalOpen} onClose={() => setTagModalOpen(false)} />
+
+      <Modal
+        title="AI 자동 정리 — 미리보기"
+        open={tidy.open}
+        width={900}
+        onCancel={() => setTidy({ open: false, loading: false, original: '', result: '' })}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => setTidy({ open: false, loading: false, original: '', result: '' })}
+          >
+            취소
+          </Button>,
+          <Button
+            key="apply"
+            type="primary"
+            disabled={tidy.loading || !tidy.result}
+            onClick={applyTidy}
+          >
+            적용
+          </Button>
+        ]}
+      >
+        {tidy.loading && <p className="setup-hint">정리 중입니다…</p>}
+        {tidy.error && <Alert type="error" message={`정리 실패: ${tidy.error}`} showIcon />}
+        {tidy.result && (
+          <>
+            {tidyMismatch && (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 8 }}
+                message="체크박스/상태 토큰 개수가 원본과 다릅니다. 내용이 빠졌을 수 있으니 확인 후 적용하세요."
+                description={tidyChecks
+                  .filter((c) => c.before !== c.after)
+                  .map((c) => `${c.label}: ${c.before}개 → ${c.after}개`)
+                  .join(', ')}
+              />
+            )}
+            <div className="tidy-compare">
+              <div>
+                <div className="tidy-pane-title">원본</div>
+                <pre className="tidy-pane">{tidy.original}</pre>
+              </div>
+              <div>
+                <div className="tidy-pane-title">정리안</div>
+                <pre className="tidy-pane">{tidy.result}</pre>
+              </div>
+            </div>
+          </>
+        )}
+      </Modal>
     </div>
   )
 }

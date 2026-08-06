@@ -41,6 +41,19 @@ export interface TabData {
   items: Item[]
 }
 
+/**
+ * 사내 LLM API 설정 (OpenAI 호환 chat/completions 형식 가정).
+ * API 키는 여기(데이터 폴더 settings.json)에 두지 않는다 —
+ * Windows 자격 증명 관리자에 저장 (백업/공유 시 유출 방지, Rust keyring).
+ */
+export interface AiSettings {
+  /** 예: http://llm.company.local/v1 — 끝에 /chat/completions 는 앱이 붙임 */
+  base_url: string
+  model: string
+  /** (2일차 예정) 주기적 도움말 on/off — 자동 정리 버튼과는 무관 */
+  advice_enabled?: boolean
+}
+
 export interface GlobalSettings {
   schema_version: number
   tab_order: string[]
@@ -48,6 +61,7 @@ export interface GlobalSettings {
   backup_keep: number
   last_tab?: string
   theme?: 'light' | 'dark'
+  ai?: AiSettings
 }
 
 export interface AppData {
