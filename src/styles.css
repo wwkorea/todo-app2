@@ -506,6 +506,16 @@ body,
   color: var(--text-muted);
 }
 
+/* 설정 모달 하단 제작자 표시 */
+.app-credit {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-ghost);
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  user-select: text;
+}
+
 /* ---------- AI 자동 정리 미리보기 ---------- */
 .tidy-compare {
   display: grid;

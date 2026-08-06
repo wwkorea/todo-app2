@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import pkg from '../../package.json'
 import { Button, Divider, Form, Input, InputNumber, Modal, Segmented, Space, message } from 'antd'
 import { FolderOpenOutlined } from '@ant-design/icons'
 import {
@@ -222,6 +223,9 @@ export default function SettingsModal({ firstRun }: { firstRun: boolean }): Reac
           </>
         )}
       </Form>
+      <div className="app-credit">
+        rag-todo-app v{pkg.version} · made by {pkg.author}
+      </div>
     </Modal>
   )
 }

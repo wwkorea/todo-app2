@@ -2,6 +2,7 @@
   "name": "rag-todo-app",
   "version": "0.1.0",
   "description": "Notion 스타일 로컬 마크다운 todo/memo 데스크톱 앱 (Tauri)",
+  "author": "ham",
   "private": true,
   "type": "module",
   "scripts": {
