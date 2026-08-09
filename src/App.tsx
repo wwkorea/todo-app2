@@ -42,6 +42,7 @@ import {
   setSettingsOpen,
   useAppStore
 } from './store'
+import { startAdviceWorker } from './adviceWorker'
 import ListView from './components/ListView'
 import DetailView from './components/DetailView'
 import SettingsModal from './components/SettingsModal'
@@ -135,6 +136,7 @@ function Main(): React.ReactNode {
 
   useEffect(() => {
     void init()
+    startAdviceWorker()
   }, [])
 
   // 앱 종료/새로고침 시 미저장분 저장 시도

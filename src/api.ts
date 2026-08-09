@@ -13,6 +13,7 @@ import {
 } from '@tauri-apps/plugin-fs'
 import { appConfigDir, join } from '@tauri-apps/api/path'
 import {
+  AdviceRecord,
   AppData,
   DEFAULT_GLOBAL_SETTINGS,
   DEFAULT_TOKENS,
@@ -281,6 +282,37 @@ export const api = {
   async saveSettings(settings: GlobalSettings): Promise<void> {
     const dataDir = requireDataDir()
     await atomicWrite(await join(dataDir, 'settings.json'), JSON.stringify(settings, null, 2))
+  },
+
+  // ---- AI 도움말 사이드카 (.ai/advice/<탭>/<id>.json) ----
+
+  async loadAdvice(): Promise<Record<string, AdviceRecord>> {
+    const dataDir = requireDataDir()
+    const root = await join(dataDir, '.ai', 'advice')
+    const out: Record<string, AdviceRecord> = {}
+    if (!(await exists(root))) return out
+    for (const tab of await readDir(root)) {
+      if (!tab.isDirectory) continue
+      const tabPath = await join(root, tab.name)
+      for (const f of await readDir(tabPath)) {
+        if (!f.isFile || !f.name.endsWith('.json')) continue
+        try {
+          out[`${tab.name}/${f.name.slice(0, -5)}`] = JSON.parse(
+            await readTextFile(await join(tabPath, f.name))
+          )
+        } catch (e) {
+          console.error(`failed to parse advice ${tab.name}/${f.name}`, e)
+        }
+      }
+    }
+    return out
+  },
+
+  async saveAdvice(tabDir: string, id: string, record: AdviceRecord): Promise<void> {
+    const dataDir = requireDataDir()
+    const dir = await join(dataDir, '.ai', 'advice', tabDir)
+    await mkdir(dir, { recursive: true })
+    await atomicWrite(await join(dir, `${id}.json`), JSON.stringify(record, null, 2))
   },
 
   // ---- AI (Rust 커맨드 — 키는 Windows 자격 증명 관리자에, 호출은 Rust에서) ----

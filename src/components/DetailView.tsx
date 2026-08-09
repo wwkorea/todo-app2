@@ -11,6 +11,7 @@ import {
   TagOutlined
 } from '@ant-design/icons'
 import { aiComplete, buildTidyMessages, compareTidy, getAiConfig, stripFences } from '../ai'
+import { adviceKey, generateAdvice } from '../adviceWorker'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 import dayjs from 'dayjs'
 import { DEFAULT_TOKENS, type Item, type TabData } from '../types'
@@ -164,6 +165,22 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
 
   const tidyChecks = tidy.result ? compareTidy(tidy.original, tidy.result, tokens) : []
   const tidyMismatch = tidyChecks.some((c) => c.before !== c.after)
+
+  // ---- 하단 AI 도움말 패널 (백그라운드 워커가 생성, 여기서는 표시 + 수동 재생성) ----
+  const advice = useAppStore((s) => s.advice[adviceKey(tab.dir, item.id)])
+  const adviceBusy = useAppStore((s) => s.adviceBusy)
+  const thisAdviceBusy = adviceBusy === adviceKey(tab.dir, item.id)
+  const aiConfigured = getAiConfig() !== null
+  const adviceEnabled = useAppStore((s) => s.settings.ai?.advice_enabled !== false)
+
+  const regenerateAdvice = async (): Promise<void> => {
+    if (saveState !== 'saved') await saveOpenItem()
+    try {
+      await generateAdvice(tab, item)
+    } catch (e) {
+      message.error(`도움말 생성 실패: ${String(e instanceof Error ? e.message : e)}`)
+    }
+  }
 
   // 자동저장: 마지막 수정 후 N분 무입력이면 저장
   useEffect(() => {
@@ -367,6 +384,39 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
         tokens={tokens}
         onChange={(md) => updateOpenItem({ body: md })}
       />
+
+      {aiConfigured && adviceEnabled && (advice || thisAdviceBusy) && (
+        <div className="advice-panel">
+          <div className="advice-header">
+            <RobotOutlined className="advice-icon" />
+            <span className="advice-title">AI 도움말</span>
+            {advice && <span className="advice-time">{advice.created_at.replace('T', ' ')}</span>}
+            <Button
+              type="text"
+              size="small"
+              loading={thisAdviceBusy}
+              disabled={adviceBusy !== null && !thisAdviceBusy}
+              onClick={() => void regenerateAdvice()}
+            >
+              다시 생성
+            </Button>
+          </div>
+          {advice && <div className="advice-body">{advice.advice}</div>}
+          {!advice && thisAdviceBusy && <div className="advice-body">생성 중입니다…</div>}
+        </div>
+      )}
+      {aiConfigured && adviceEnabled && !advice && !thisAdviceBusy && (
+        <div className="advice-empty">
+          <Button
+            type="text"
+            size="small"
+            icon={<RobotOutlined />}
+            onClick={() => void regenerateAdvice()}
+          >
+            AI 도움말 생성
+          </Button>
+        </div>
+      )}
 
       <TagManageModal tab={tab} open={tagModalOpen} onClose={() => setTagModalOpen(false)} />
 

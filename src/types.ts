@@ -70,6 +70,17 @@ export interface AppData {
   tabs: TabData[]
 }
 
+/**
+ * 항목별 AI 도움말 — 데이터 폴더 `.ai/advice/<탭>/<id>.json` 사이드카로 저장.
+ * 본문(md)에 섞지 않는 이유: 원본 오염 방지 + 추후 RAG 임베딩 시 AI 글 제외.
+ */
+export interface AdviceRecord {
+  /** 생성 당시 본문+제목 해시 — 내용이 바뀌면 해시가 달라져 재생성 대상이 됨 */
+  hash: string
+  advice: string
+  created_at: string
+}
+
 export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
   schema_version: 1,
   tab_order: [],

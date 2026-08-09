@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react'
 import pkg from '../../package.json'
-import { Button, Divider, Form, Input, InputNumber, Modal, Segmented, Space, message } from 'antd'
+import {
+  Button,
+  Divider,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Segmented,
+  Space,
+  Switch,
+  message
+} from 'antd'
 import { FolderOpenOutlined } from '@ant-design/icons'
 import {
   createTabAction,
@@ -175,6 +186,21 @@ export default function SettingsModal({ firstRun }: { firstRun: boolean }): Reac
                   })
                 }
               />
+            </Form.Item>
+            <Form.Item label="주기적 AI 도움말">
+              <Space>
+                <Switch
+                  checked={settings.ai?.advice_enabled !== false}
+                  onChange={(on) =>
+                    void saveSettingsPatch({
+                      ai: { base_url: '', model: '', ...settings.ai, advice_enabled: on }
+                    })
+                  }
+                />
+                <span className="setup-hint">
+                  5분마다 수정된 항목 하나를 골라 하단에 도움말을 생성합니다
+                </span>
+              </Space>
             </Form.Item>
             <Form.Item
               label="API 키"

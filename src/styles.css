@@ -506,6 +506,57 @@ body,
   color: var(--text-muted);
 }
 
+/* ---------- 하단 AI 도움말 패널 ---------- */
+.advice-panel {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--hover-bg);
+  padding: 10px 12px;
+}
+
+.advice-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.advice-header > :last-child {
+  margin-left: auto;
+}
+
+.advice-icon {
+  color: #2f6fed;
+}
+
+.advice-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.advice-time {
+  font-size: 11px;
+  color: var(--text-ghost);
+}
+
+.advice-body {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.advice-empty {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.advice-empty .ant-btn {
+  color: var(--text-ghost);
+}
+
 /* 설정 모달 하단 제작자 표시 */
 .app-credit {
   text-align: center;
