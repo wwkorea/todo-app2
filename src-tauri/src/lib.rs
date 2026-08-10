@@ -94,7 +94,17 @@ async fn ai_complete(cfg: AiConfig, messages: Vec<ChatMessage>) -> AiResult {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    use tauri::Manager;
     tauri::Builder::default()
+        // 단일 인스턴스: 중복 실행 시 새 프로세스는 종료되고 기존 창을 앞으로 띄운다.
+        // 다른 플러그인보다 먼저 등록해야 한다.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.show();
+                let _ = win.unminimize();
+                let _ = win.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())

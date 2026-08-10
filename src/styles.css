@@ -431,7 +431,9 @@ body,
 }
 
 .md-editor .milkdown .ProseMirror {
-  padding: 8px 0 120px;
+  /* 왼쪽 56px는 Crepe 블록 핸들(드래그·추가 아이콘 2개)이 뜨는 거터 —
+     줄이면 아이콘이 잘려 서식 변경을 못 하게 되므로 유지할 것 */
+  padding: 8px 0 120px 56px;
 }
 
 /* ---------- 상태 토큰 칩 ---------- */
