@@ -10,8 +10,16 @@ import {
   SettingOutlined,
   TagOutlined
 } from '@ant-design/icons'
-import { aiComplete, buildTidyMessages, compareTidy, getAiConfig, stripFences } from '../ai'
+import {
+  aiComplete,
+  buildChatMessages,
+  buildTidyMessages,
+  compareTidy,
+  getAiConfig,
+  stripFences
+} from '../ai'
 import { adviceKey, generateAdvice } from '../adviceWorker'
+import type { ChatEntry } from '../types'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 import dayjs from 'dayjs'
 import { DEFAULT_TOKENS, type Item, type TabData } from '../types'
@@ -180,6 +188,54 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
     } catch (e) {
       message.error(`도움말 생성 실패: ${String(e instanceof Error ? e.message : e)}`)
     }
+  }
+
+  // ---- 이어서 질문 (채팅) — 대화는 .ai/chat/ 사이드카에 저장, 본문과 분리 ----
+  const [chat, setChat] = useState<ChatEntry[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatBusy, setChatBusy] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setChat([])
+    setChatInput('')
+    void api.loadChat(tab.dir, item.id).then((entries) => {
+      if (!cancelled) setChat(entries)
+    })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id])
+
+  const sendChat = async (): Promise<void> => {
+    const question = chatInput.trim()
+    if (!question || chatBusy) return
+    const now = dayjs().format('YYYY-MM-DDTHH:mm:ss')
+    const withQuestion: ChatEntry[] = [...chat, { role: 'user', content: question, at: now }]
+    setChat(withQuestion)
+    setChatInput('')
+    setChatBusy(true)
+    try {
+      const answer = await aiComplete(buildChatMessages(tab, item, advice?.advice, chat, question))
+      const full: ChatEntry[] = [
+        ...withQuestion,
+        { role: 'assistant', content: answer.trim(), at: dayjs().format('YYYY-MM-DDTHH:mm:ss') }
+      ]
+      setChat(full)
+      await api.saveChat(tab.dir, item.id, full)
+    } catch (e) {
+      message.error(`질문 실패: ${String(e instanceof Error ? e.message : e)}`)
+      setChat(chat) // 실패한 질문은 되돌림 (입력창에 복원)
+      setChatInput(question)
+    } finally {
+      setChatBusy(false)
+    }
+  }
+
+  const clearChat = async (): Promise<void> => {
+    setChat([])
+    await api.saveChat(tab.dir, item.id, [])
   }
 
   // 자동저장: 마지막 수정 후 N분 무입력이면 저장
@@ -415,6 +471,58 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
           >
             AI 도움말 생성
           </Button>
+        </div>
+      )}
+
+      {aiConfigured && (
+        <div className="chat-panel">
+          {chat.map((m, i) => (
+            <div key={`${m.at}-${i}`} className={`chat-msg chat-${m.role}`}>
+              <div className="chat-content">{m.content}</div>
+              {m.role === 'assistant' && (
+                <Button
+                  type="text"
+                  size="small"
+                  className="chat-insert"
+                  onClick={() => editorRef.current?.insertMarkdown(`\n${m.content}\n`)}
+                >
+                  본문에 삽입
+                </Button>
+              )}
+            </div>
+          ))}
+          {chatBusy && (
+            <div className="chat-msg chat-assistant">
+              <div className="chat-content">답변 작성 중…</div>
+            </div>
+          )}
+          <div className="chat-input-row">
+            <Input.TextArea
+              autoSize={{ minRows: 1, maxRows: 4 }}
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="이 항목에 대해 이어서 질문하기… (Enter 전송, Shift+Enter 줄바꿈)"
+              onPressEnter={(e) => {
+                if (e.shiftKey) return
+                e.preventDefault()
+                void sendChat()
+              }}
+              disabled={chatBusy}
+            />
+            <Button
+              type="primary"
+              loading={chatBusy}
+              disabled={!chatInput.trim()}
+              onClick={() => void sendChat()}
+            >
+              질문
+            </Button>
+            {chat.length > 0 && (
+              <Tooltip title="대화 지우기">
+                <Button onClick={() => void clearChat()}>지우기</Button>
+              </Tooltip>
+            )}
+          </div>
         </div>
       )}
 

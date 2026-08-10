@@ -15,6 +15,7 @@ import { appConfigDir, join } from '@tauri-apps/api/path'
 import {
   AdviceRecord,
   AppData,
+  ChatEntry,
   DEFAULT_GLOBAL_SETTINGS,
   DEFAULT_TOKENS,
   GlobalSettings,
@@ -313,6 +314,25 @@ export const api = {
     const dir = await join(dataDir, '.ai', 'advice', tabDir)
     await mkdir(dir, { recursive: true })
     await atomicWrite(await join(dir, `${id}.json`), JSON.stringify(record, null, 2))
+  },
+
+  // ---- AI 대화 사이드카 (.ai/chat/<탭>/<id>.json) — 항목 열 때 개별 로드 ----
+
+  async loadChat(tabDir: string, id: string): Promise<ChatEntry[]> {
+    try {
+      const p = await join(requireDataDir(), '.ai', 'chat', tabDir, `${id}.json`)
+      if (!(await exists(p))) return []
+      const parsed = JSON.parse(await readTextFile(p))
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  },
+
+  async saveChat(tabDir: string, id: string, entries: ChatEntry[]): Promise<void> {
+    const dir = await join(requireDataDir(), '.ai', 'chat', tabDir)
+    await mkdir(dir, { recursive: true })
+    await atomicWrite(await join(dir, `${id}.json`), JSON.stringify(entries, null, 2))
   },
 
   // ---- AI (Rust 커맨드 — 키는 Windows 자격 증명 관리자에, 호출은 Rust에서) ----

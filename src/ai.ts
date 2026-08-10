@@ -1,4 +1,4 @@
-import type { AiSettings } from './types'
+import type { AiSettings, ChatEntry, Item, TabData } from './types'
 import { useAppStore } from './store'
 import { api } from './api'
 
@@ -42,6 +42,42 @@ export function buildTidyMessages(body: string): AiMessage[] {
 export function stripFences(text: string): string {
   const m = /^\s*```(?:markdown|md)?\r?\n([\s\S]*?)\r?\n```\s*$/.exec(text)
   return (m ? m[1] : text).trim()
+}
+
+const CHAT_SYSTEM_PROMPT = `당신은 개발자의 업무 todo/메모에 대해 대화하는 사내 조수입니다. 아래에 주어지는 항목 정보를 참고해 사용자의 질문에 한국어로 간결하고 실용적으로 답하세요. 항목 내용만으로 알 수 없는 것은 아는 척하지 말고 모른다고 하세요. 마크다운을 써도 됩니다.`
+
+function itemContext(tab: TabData, item: Item): string {
+  const lines = [
+    `[탭] ${tab.setting.name} (${tab.setting.type})`,
+    `[제목] ${item.title || '(제목 없음)'}`
+  ]
+  if (item.status) lines.push(`[상태] ${item.status}`)
+  if (item.priority) lines.push(`[우선순위] ${item.priority}`)
+  if (item.due_date) lines.push(`[마감일] ${item.due_date}`)
+  if (item.plan_date) lines.push(`[계획일] ${item.plan_date}`)
+  if (item.tags?.length) lines.push(`[태그] ${item.tags.join(', ')}`)
+  lines.push('', '[본문]', item.body)
+  return lines.join('\n')
+}
+
+/** 항목 컨텍스트 + 기존 도움말 + 대화 이력 + 새 질문 → LLM 메시지 배열 */
+export function buildChatMessages(
+  tab: TabData,
+  item: Item,
+  advice: string | undefined,
+  history: ChatEntry[],
+  question: string
+): AiMessage[] {
+  const messages: AiMessage[] = [
+    { role: 'system', content: CHAT_SYSTEM_PROMPT },
+    { role: 'user', content: `다음은 대화의 대상이 되는 항목입니다.\n\n${itemContext(tab, item)}` }
+  ]
+  if (advice) {
+    messages.push({ role: 'assistant', content: `(제가 이 항목에 남긴 도움말)\n${advice}` })
+  }
+  for (const h of history) messages.push({ role: h.role, content: h.content })
+  messages.push({ role: 'user', content: question })
+  return messages
 }
 
 export interface TidyCheck {

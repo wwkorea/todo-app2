@@ -81,6 +81,13 @@ export interface AdviceRecord {
   created_at: string
 }
 
+/** 항목별 AI 대화 한 마디 — `.ai/chat/<탭>/<id>.json`에 배열로 저장 */
+export interface ChatEntry {
+  role: 'user' | 'assistant'
+  content: string
+  at: string
+}
+
 export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
   schema_version: 1,
   tab_order: [],
