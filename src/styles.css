@@ -404,6 +404,14 @@ body,
 .md-editor .milkdown {
   --crepe-color-background: var(--bg);
   --crepe-color-on-background: var(--text);
+  /* Crepe 기본 테마가 제목에 명조(Noto Serif)를 지정 — 한국어에 맞게 시스템 고딕으로 통일
+     (코드 폰트 --crepe-font-code 는 모노스페이스 유지) */
+  --crepe-font-title:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo',
+    sans-serif;
+  --crepe-font-default:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo',
+    sans-serif;
 }
 
 :root[data-theme='dark'] .md-editor .milkdown {
