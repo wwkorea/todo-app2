@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Button, DatePicker, Input, Modal, Select, Space, Tag, Tooltip, message } from 'antd'
+import {
+  Alert,
+  Button,
+  DatePicker,
+  Input,
+  Modal,
+  Select,
+  Space,
+  Switch,
+  Tag,
+  Tooltip,
+  message
+} from 'antd'
 import {
   ArrowLeftOutlined,
   CalendarOutlined,
@@ -188,6 +200,12 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
     } catch (e) {
       message.error(`도움말 생성 실패: ${String(e instanceof Error ? e.message : e)}`)
     }
+  }
+
+  // 문서별 도움말 on/off — 기본 on, 끈 문서에만 frontmatter에 ai_advice: false 기록
+  const itemAdviceOn = item.ai_advice !== false
+  const toggleItemAdvice = (on: boolean): void => {
+    updateOpenItem({ ai_advice: on ? undefined : false })
   }
 
   // ---- 이어서 질문 (채팅) — 대화는 .ai/chat/ 사이드카에 저장, 본문과 분리 ----
@@ -441,38 +459,49 @@ export default function DetailView({ tab, item }: { tab: TabData; item: Item }):
         onChange={(md) => updateOpenItem({ body: md })}
       />
 
-      {aiConfigured && adviceEnabled && (advice || thisAdviceBusy) && (
-        <div className="advice-panel">
-          <div className="advice-header">
-            <RobotOutlined className="advice-icon" />
-            <span className="advice-title">AI 도움말</span>
-            {advice && <span className="advice-time">{advice.created_at.replace('T', ' ')}</span>}
-            <Button
-              type="text"
-              size="small"
-              loading={thisAdviceBusy}
-              disabled={adviceBusy !== null && !thisAdviceBusy}
-              onClick={() => void regenerateAdvice()}
-            >
-              다시 생성
-            </Button>
+      {aiConfigured &&
+        adviceEnabled &&
+        (itemAdviceOn && (advice || thisAdviceBusy) ? (
+          <div className="advice-panel">
+            <div className="advice-header">
+              <RobotOutlined className="advice-icon" />
+              <span className="advice-title">AI 도움말</span>
+              <Tooltip title="이 문서의 AI 도움말 켜기/끄기">
+                <Switch size="small" checked={itemAdviceOn} onChange={toggleItemAdvice} />
+              </Tooltip>
+              {advice && <span className="advice-time">{advice.created_at.replace('T', ' ')}</span>}
+              <Button
+                type="text"
+                size="small"
+                loading={thisAdviceBusy}
+                disabled={adviceBusy !== null && !thisAdviceBusy}
+                onClick={() => void regenerateAdvice()}
+              >
+                다시 생성
+              </Button>
+            </div>
+            {advice && <div className="advice-body">{advice.advice}</div>}
+            {!advice && thisAdviceBusy && <div className="advice-body">생성 중입니다…</div>}
           </div>
-          {advice && <div className="advice-body">{advice.advice}</div>}
-          {!advice && thisAdviceBusy && <div className="advice-body">생성 중입니다…</div>}
-        </div>
-      )}
-      {aiConfigured && adviceEnabled && !advice && !thisAdviceBusy && (
-        <div className="advice-empty">
-          <Button
-            type="text"
-            size="small"
-            icon={<RobotOutlined />}
-            onClick={() => void regenerateAdvice()}
-          >
-            AI 도움말 생성
-          </Button>
-        </div>
-      )}
+        ) : (
+          <div className="advice-empty">
+            <Tooltip title="이 문서의 AI 도움말 켜기/끄기">
+              <Switch size="small" checked={itemAdviceOn} onChange={toggleItemAdvice} />
+            </Tooltip>
+            {itemAdviceOn ? (
+              <Button
+                type="text"
+                size="small"
+                icon={<RobotOutlined />}
+                onClick={() => void regenerateAdvice()}
+              >
+                AI 도움말 생성
+              </Button>
+            ) : (
+              <span className="setup-hint">이 문서의 AI 도움말이 꺼져 있습니다</span>
+            )}
+          </div>
+        ))}
 
       {aiConfigured && (
         <div className="chat-panel">

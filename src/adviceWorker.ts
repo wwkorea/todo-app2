@@ -69,6 +69,7 @@ function pickCandidate(): { tab: TabData; item: Item } | null {
   const now = Date.now()
   for (const tab of s.tabs) {
     for (const item of tab.items) {
+      if (item.ai_advice === false) continue // 문서별로 도움말을 꺼둔 항목
       const content = `${item.title}\n${item.body}`
       if (content.trim().length < MIN_CONTENT_LENGTH) continue
       if (item.id === s.openItemId) continue

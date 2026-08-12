@@ -11,6 +11,8 @@ export interface ItemMeta {
   tags?: string[]
   /** 첨부파일 절대 경로 목록 — 본문이 아닌 메타데이터로 관리 */
   attachments?: string[]
+  /** 문서별 AI 도움말 on/off — 기본 on이므로 끈 문서에만 false가 기록됨 */
+  ai_advice?: boolean
   created_at: string
   updated_at: string
   done_at?: string

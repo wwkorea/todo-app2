@@ -560,7 +560,10 @@ body,
 
 .advice-empty {
   margin-top: 16px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .advice-empty .ant-btn {
