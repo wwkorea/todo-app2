@@ -1,5 +1,6 @@
-import { useEffect, useImperativeHandle, useRef, forwardRef } from 'react'
+import { useEffect, useImperativeHandle, useRef, forwardRef, type CSSProperties } from 'react'
 import { Crepe } from '@milkdown/crepe'
+import { useAppStore } from '../store'
 import { editorViewCtx } from '@milkdown/kit/core'
 import { $prose, insert } from '@milkdown/kit/utils'
 import { Plugin, PluginKey } from '@milkdown/kit/prose/state'
@@ -78,6 +79,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function Markdown
   const crepeRef = useRef<Crepe | null>(null)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+  const editorFontSize = useAppStore((s) => s.settings.editor_font_size ?? 16)
 
   useEffect(() => {
     if (!rootRef.current) return
@@ -132,7 +134,13 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(function Markdown
     }
   }))
 
-  return <div className="md-editor" ref={rootRef} />
+  return (
+    <div
+      className="md-editor"
+      ref={rootRef}
+      style={{ '--editor-font-size': `${editorFontSize}px` } as CSSProperties}
+    />
+  )
 })
 
 export default MarkdownEditor

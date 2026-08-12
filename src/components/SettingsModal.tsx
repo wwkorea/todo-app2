@@ -143,6 +143,17 @@ export default function SettingsModal({ firstRun }: { firstRun: boolean }): Reac
                 ]}
               />
             </Form.Item>
+            <Form.Item
+              label="에디터 글자 크기 (px)"
+              help="본문 기준 크기 — 제목 등은 비율대로 함께 조절됩니다"
+            >
+              <InputNumber
+                min={12}
+                max={24}
+                value={settings.editor_font_size ?? 16}
+                onChange={(v) => v && void saveSettingsPatch({ editor_font_size: v })}
+              />
+            </Form.Item>
             <Form.Item label="자동저장 대기 시간 (분)">
               <InputNumber
                 min={0.5}

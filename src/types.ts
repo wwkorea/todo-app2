@@ -63,6 +63,8 @@ export interface GlobalSettings {
   backup_keep: number
   last_tab?: string
   theme?: 'light' | 'dark'
+  /** 에디터 본문 기준 글자 크기(px, 기본 16) — 제목 등은 이 값의 비율(em)로 함께 움직임 */
+  editor_font_size?: number
   ai?: AiSettings
 }
 

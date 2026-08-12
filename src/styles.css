@@ -442,6 +442,55 @@ body,
   /* 왼쪽 56px는 Crepe 블록 핸들(드래그·추가 아이콘 2개)이 뜨는 거터 —
      줄이면 아이콘이 잘려 서식 변경을 못 하게 되므로 유지할 것 */
   padding: 8px 0 120px 56px;
+  /* 에디터 글자 크기 기준값 — 설정에서 변경 (아래 요소들은 전부 이 값의 배수) */
+  font-size: var(--editor-font-size, 16px);
+}
+
+/* Crepe reset.css의 px 고정 크기를 em(기준 배수)으로 덮어써서
+   기준 하나만 바꾸면 본문·제목이 원본 비율 그대로 함께 조절되게 한다 */
+.md-editor .milkdown .ProseMirror p {
+  font-size: 1em;
+  line-height: 1.5;
+}
+
+.md-editor .milkdown .ProseMirror h1 {
+  font-size: 2.625em; /* 42/16 */
+  line-height: 1.19;
+}
+
+.md-editor .milkdown .ProseMirror h2 {
+  font-size: 2.25em; /* 36/16 */
+  line-height: 1.22;
+}
+
+.md-editor .milkdown .ProseMirror h3 {
+  font-size: 2em; /* 32/16 */
+  line-height: 1.25;
+}
+
+.md-editor .milkdown .ProseMirror h4 {
+  font-size: 1.75em; /* 28/16 */
+  line-height: 1.29;
+}
+
+.md-editor .milkdown .ProseMirror h5 {
+  font-size: 1.5em; /* 24/16 */
+  line-height: 1.33;
+}
+
+.md-editor .milkdown .ProseMirror h6 {
+  font-size: 1.125em; /* 18/16 */
+  line-height: 1.56;
+}
+
+/* 코드 블록(CodeMirror)도 본문 대비 87.5% 비율로 함께 조절 (기본 16px→14px) */
+.md-editor .milkdown .milkdown-code-block {
+  font-size: 0.875em;
+}
+
+.md-editor .milkdown .milkdown-code-block .milkdown-code-block-placeholder,
+.md-editor .milkdown .milkdown-code-block .cm-editor {
+  font-size: 1em; /* Crepe의 14px 고정을 상속(위 87.5%)으로 교체 */
 }
 
 /* ---------- 상태 토큰 칩 ---------- */
